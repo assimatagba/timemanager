@@ -1,0 +1,52 @@
+version: '3.1'
+
+services:
+  db:
+    build: ./
+    container_name: db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    networks:
+        - api-tier
+  api:
+      build:  ./theme01/timemanager
+      environment:
+        PGUSER: postgres
+        PGPASSWORD: postgres
+        PGDATABASE: docker
+        PGPORT: 5432
+        PGHOST: db
+      container_name: "api"
+      ports:
+        - "4000:4000"
+      depends_on:
+        - db
+      links:
+        - db:db
+      networks:
+        - api-tier
+      tty: true
+  vue:
+    build:  ./theme02
+    environment:
+      VUE_APP_API_HOST: localhost
+      VUE_APP_VUE_HOST: localhost
+    ports:
+      - "8080:8080"
+#FIX FOR HOT RELOAD
+#    volumes:
+#      - ./theme02:/app
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+networks:
+  api-tier:
+
+volumes:
+  data: {}
